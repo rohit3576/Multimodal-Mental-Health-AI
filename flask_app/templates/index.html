@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Mental Health Analyzer</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="glass-container">
+    <h1>🧠 AI Mental Health Analyzer</h1>
+    <p class="subtitle">
+        Understand your emotions and stress using multimodal AI
+    </p>
+
+    <!-- ================================================= -->
+    <!-- TEXT ANALYSIS -->
+    <!-- ================================================= -->
+    <form method="POST" onsubmit="showTextLoader()">
+        <textarea
+            name="text"
+            placeholder="Write what’s on your mind..."
+            required></textarea>
+
+        <button type="submit">Analyze Text</button>
+    </form>
+
+    <!-- TEXT LOADER -->
+    <div class="loader" id="textLoader">
+        <div class="spinner"></div>
+        <p>Analyzing your emotions...</p>
+    </div>
+
+    <!-- TEXT RESULT -->
+    {% if text_result %}
+    <div class="result">
+        <h3>📝 Text Analysis</h3>
+
+        <p>
+            Risk Level:
+            <span class="stress-{{ text_result.risk_level | lower }}">
+                {{ text_result.risk_level }}
+            </span>
+        </p>
+
+        <p>
+            Confidence:
+            {{ (text_result.confidence * 100) | round(1) }}%
+        </p>
+
+        <p class="explain">
+            {{ text_result.explanation }}
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- ================================================= -->
+    <!-- QUESTIONNAIRE -->
+    <!-- ================================================= -->
+    <hr class="divider">
+
+    <h2>📋 Mental Health Questionnaire</h2>
+    <p class="subtitle small">
+        Answer honestly based on how you felt in the last 7 days
+    </p>
+
+    <form method="POST">
+        {% set questions = [
+            ("Q1", "I feel stressed or overwhelmed."),
+            ("Q2", "I feel anxious or worried often."),
+            ("Q3", "I feel low, sad, or demotivated."),
+            ("Q4", "I have trouble sleeping or relaxing."),
+            ("Q5", "I feel mentally exhausted.")
+        ] %}
+
+        {% for q, text in questions %}
+        <div class="question">
+            <p>{{ loop.index }}️⃣ {{ text }}</p>
+            {% for i in range(1,6) %}
+                <label>
+                    <input type="radio" name="{{ q }}" value="{{ i }}" required>
+                    {{ i }}
+                </label>
+            {% endfor %}
+        </div>
+        {% endfor %}
+
+        <button type="submit">Submit Questionnaire</button>
+    </form>
+
+    <!-- QUESTIONNAIRE RESULT -->
+    {% if questionnaire_result %}
+    <div class="result">
+        <h3>📋 Questionnaire Result</h3>
+
+        <p>
+            Risk Level:
+            <span class="stress-{{ questionnaire_result.risk_level | lower }}">
+                {{ questionnaire_result.risk_level }}
+            </span>
+        </p>
+
+        <p>
+            Confidence:
+            {{ questionnaire_result.confidence }}
+        </p>
+
+        <p class="explain">
+            {{ questionnaire_result.explanation }}
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- ================================================= -->
+    <!-- VIDEO ANALYSIS -->
+    <!-- ================================================= -->
+    <hr class="divider">
+
+    <h2>🎥 Facial Emotion Analysis</h2>
+    <p class="subtitle small">
+        Facial emotion analysis runs in a dedicated AI engine
+    </p>
+
+    {% if video_result %}
+    <div class="result">
+        <h3>🎥 Video Analysis</h3>
+
+        <p>
+            Risk Level:
+            <span class="stress-{{ video_result.risk_level | lower }}">
+                {{ video_result.risk_level }}
+            </span>
+        </p>
+
+        <p>
+            Confidence:
+            {{ (video_result.confidence * 100) | round(1) }}%
+        </p>
+
+        <p>
+            <strong>Dominant Emotion:</strong>
+            {{ video_result.signals.dominant_emotion }}
+        </p>
+
+        <h4>Emotion Distribution</h4>
+        <ul class="emotion-list">
+            {% for emotion, value in video_result.signals.emotion_distribution.items() %}
+                <li>{{ emotion }} : {{ value }}%</li>
+            {% endfor %}
+        </ul>
+
+        <p class="explain">
+            {{ video_result.explanation }}
+        </p>
+    </div>
+    {% else %}
+    <div class="result">
+        <p>▶ Run the <b>Video Emotion Engine</b> separately.</p>
+
+        <a href="http://localhost:8501" target="_blank">
+            <button type="button">Open Video Emotion Engine</button>
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- ================================================= -->
+    <!-- FINAL FUSION -->
+    <!-- ================================================= -->
+    {% if fusion_result %}
+    <hr class="divider">
+
+    <div class="result fusion-result">
+        <h2>🧠 Final Mental Health Assessment</h2>
+
+        <p>
+            <strong>Final Risk Level:</strong>
+            <span class="stress-{{ fusion_result.risk_level | lower }}">
+                {{ fusion_result.risk_level }}
+            </span>
+        </p>
+
+        <p>
+            <strong>Confidence:</strong>
+            {{ fusion_result.confidence }}
+        </p>
+
+        <p class="explain">
+            {{ fusion_result.explanation }}
+        </p>
+
+        {% if fusion_result.medical_recommendation %}
+            <p class="warning">
+                ⚠ We recommend consulting a mental health professional.
+                This is not a medical diagnosis.
+            </p>
+        {% else %}
+            <p class="safe">
+                ✅ No immediate concern detected.
+            </p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        ⚠ Educational use only — Not a medical diagnosis
+    </div>
+</div>
+
+<!-- ================= JAVASCRIPT ================= -->
+<script src="{{ url_for('static', filename='main.js') }}"></script>
+
+</body>
+</html>
